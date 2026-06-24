@@ -1,1 +1,462 @@
+<!DOCTYPE html>
+<!--
+  La media ponderada como punto de equilibrio — interactivo DUA
+  Autor: José M. Fernández, ABE/ASE Math Master Teacher,
+         Harry S. Truman College — City Colleges of Chicago.
+  Licencia: Creative Commons CC BY-NC-SA 4.0
+  https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es
+-->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="José M. Fernández, ABE/ASE Math Master Teacher, Harry S. Truman College — City Colleges of Chicago.">
+<meta name="license" content="CC BY-NC-SA 4.0">
+<link rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+<title>La media ponderada como punto de equilibrio</title>
+<style>
+  :root{
+    --papel:#faf6ef;
+    --tinta:#2b2118;
+    --tinta-suave:#5a5046;
+    --madera:#b07d52;
+    --madera-borde:#7c5333;
+    --pesa:#92400e;
+    --equilibrio:#0f766e;
+    --equilibrio-claro:#ccfbf1;
+    --simple:#475569;
+    --linea:#d8cdbb;
+    --acento-suave:#fff7ec;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--papel);
+    color:var(--tinta);
+    font-family:Georgia,"Times New Roman",serif;
+    line-height:1.55;
+    padding:1.2rem;
+  }
+  .marco{max-width:840px;margin:0 auto;}
+  h1{
+    font-size:1.6rem;
+    line-height:1.25;
+    margin:0 0 .3rem;
+    font-weight:700;
+  }
+  .subtitulo{
+    color:var(--tinta-suave);
+    margin:0 0 1.4rem;
+    font-size:1.02rem;
+  }
+  h2{
+    font-size:1.18rem;
+    margin:1.8rem 0 .6rem;
+    border-bottom:2px solid var(--linea);
+    padding-bottom:.25rem;
+  }
+  .escena{
+    background:#fffdf9;
+    border:1px solid var(--linea);
+    border-radius:12px;
+    padding:.6rem .4rem .2rem;
+    box-shadow:0 1px 3px rgba(80,60,30,.06);
+  }
+  svg{display:block;width:100%;height:auto;}
+  .leyenda{
+    display:flex;flex-wrap:wrap;gap:.4rem 1.3rem;
+    justify-content:center;
+    font-size:.92rem;color:var(--tinta-suave);
+    margin:.2rem 0 .7rem;
+  }
+  .leyenda span{display:inline-flex;align-items:center;gap:.4rem;}
+  .ficha{width:1rem;height:1rem;border-radius:3px;display:inline-block;}
 
+  /* Controles de frecuencia */
+  .controles{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(98px,1fr));
+    gap:.6rem;
+    margin-top:.4rem;
+  }
+  .control{
+    background:var(--acento-suave);
+    border:1px solid var(--linea);
+    border-radius:10px;
+    padding:.55rem .4rem .45rem;
+    text-align:center;
+  }
+  .control .puntaje{font-weight:700;font-size:1.05rem;}
+  .control .freq{
+    font-size:1.5rem;font-weight:700;color:var(--pesa);
+    margin:.1rem 0;font-family:"Courier New",monospace;
+  }
+  .botones{display:flex;gap:.35rem;justify-content:center;}
+  .btn{
+    cursor:pointer;user-select:none;
+    width:2rem;height:2rem;line-height:1.85rem;
+    border-radius:6px;border:1px solid var(--madera-borde);
+    background:var(--madera);color:#fff;
+    font-size:1.2rem;font-weight:700;text-align:center;
+    font-family:Arial,sans-serif;
+    transition:transform .08s, filter .12s;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn:active{transform:scale(.92);}
+  .btn:focus-visible{outline:3px solid var(--equilibrio);outline-offset:2px;}
+
+  /* Panel de cálculo */
+  .calculo{
+    background:#fffdf9;
+    border:1px solid var(--linea);
+    border-radius:12px;
+    padding:1rem 1.1rem;
+    overflow-x:auto;
+  }
+  table{border-collapse:collapse;width:100%;font-size:.96rem;min-width:420px;}
+  caption{text-align:left;font-weight:700;margin-bottom:.5rem;color:var(--tinta-suave);}
+  th,td{padding:.4rem .55rem;text-align:right;border-bottom:1px solid var(--linea);}
+  th:first-child,td:first-child{text-align:left;}
+  thead th{border-bottom:2px solid var(--madera-borde);font-size:.9rem;color:var(--tinta-suave);}
+  tfoot td{border-top:2px solid var(--madera-borde);border-bottom:none;font-weight:700;}
+  .resultado{
+    margin-top:1rem;padding:.9rem 1.1rem;
+    background:var(--equilibrio-claro);
+    border-left:5px solid var(--equilibrio);
+    border-radius:8px;
+    font-size:1.05rem;
+  }
+  .resultado .num{color:var(--equilibrio);font-weight:700;font-size:1.25rem;}
+
+  .interruptor{
+    display:inline-flex;align-items:center;gap:.6rem;
+    cursor:pointer;user-select:none;
+    margin:.8rem 0 .2rem;font-size:.98rem;
+  }
+  .pista{
+    width:3rem;height:1.55rem;border-radius:1rem;
+    background:#cfc6b6;position:relative;transition:background .2s;flex:none;
+  }
+  .pista::after{
+    content:"";position:absolute;top:3px;left:3px;
+    width:1.15rem;height:1.15rem;border-radius:50%;
+    background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.3);
+  }
+  .interruptor[aria-pressed="true"] .pista{background:var(--simple);}
+  .interruptor[aria-pressed="true"] .pista::after{transform:translateX(1.45rem);}
+  .interruptor:focus-visible{outline:3px solid var(--equilibrio);outline-offset:3px;border-radius:6px;}
+
+  .nota{
+    background:var(--acento-suave);
+    border:1px dashed var(--madera);
+    border-radius:10px;padding:.85rem 1.1rem;margin-top:1rem;
+    font-size:.97rem;color:var(--tinta-suave);
+  }
+  .acciones{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem;}
+  .accion{
+    cursor:pointer;border:1px solid var(--madera-borde);
+    background:#fff;color:var(--madera-borde);
+    border-radius:8px;padding:.5rem .9rem;font-family:inherit;font-size:.95rem;
+  }
+  .accion:hover{background:var(--acento-suave);}
+  .accion:focus-visible{outline:3px solid var(--equilibrio);outline-offset:2px;}
+
+  footer{
+    margin-top:2.4rem;padding-top:1rem;border-top:1px solid var(--linea);
+    font-size:.82rem;color:var(--tinta-suave);text-align:center;
+  }
+  footer a{color:var(--madera-borde);}
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="marco">
+
+  <h1>La media ponderada como punto de equilibrio</h1>
+  <p class="subtitulo">Cada puntaje se coloca sobre la regla. Su <strong>frecuencia</strong> son las pesas apiladas encima. La media ponderada es el punto donde toda la balanza se equilibra.</p>
+
+  <div class="escena" aria-label="Balanza interactiva de la media ponderada">
+    <svg id="balanza" viewBox="0 0 800 360" role="img"
+         aria-describedby="descripcion-balanza"></svg>
+    <p id="descripcion-balanza" class="leyenda">
+      <span><span class="ficha" style="background:var(--pesa)"></span> Cada pesa = un puntaje obtenido</span>
+      <span><span class="ficha" style="background:var(--equilibrio)"></span> Media ponderada (punto de equilibrio)</span>
+      <span id="leyenda-simple" hidden><span class="ficha" style="background:var(--simple)"></span> Promedio simple (sin frecuencias)</span>
+    </p>
+  </div>
+
+  <div class="interruptor" id="toggleSimple" role="button" tabindex="0"
+       aria-pressed="false">
+    <span class="pista" aria-hidden="true"></span>
+    <span>Mostrar el promedio simple (tratar todos los puntajes por igual)</span>
+  </div>
+
+  <h2>Ajuste las frecuencias</h2>
+  <p style="margin:.2rem 0 .2rem;color:var(--tinta-suave);font-size:.97rem;">
+    Use los botones para indicar cuántas veces se obtuvo cada puntaje. Observe cómo el punto de equilibrio se desplaza hacia donde se acumulan las pesas.</p>
+  <div class="controles" id="controles"></div>
+
+  <div class="acciones">
+    <button class="accion" id="acc-bajos" type="button">Cargar puntajes bajos</button>
+    <button class="accion" id="acc-altos" type="button">Cargar puntajes altos</button>
+    <button class="accion" id="acc-centro" type="button">Concentrar en el centro</button>
+    <button class="accion" id="acc-iguales" type="button">Todas iguales</button>
+  </div>
+
+  <h2>El cálculo, paso a paso</h2>
+  <div class="calculo">
+    <table>
+      <caption>Cada puntaje se multiplica por su frecuencia; luego se suma todo y se divide entre el total de pesas.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Puntaje (x)</th>
+          <th scope="col">Frecuencia (w)</th>
+          <th scope="col">w · x</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-cuerpo"></tbody>
+      <tfoot>
+        <tr>
+          <td>Totales</td>
+          <td id="total-w">0</td>
+          <td id="total-wx">0</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="resultado">
+      Media ponderada
+      = (suma de <em>w · x</em>) ÷ (suma de <em>w</em>)
+      = <span id="r-suma">0</span> ÷ <span id="r-total">0</span>
+      = <span class="num" id="r-media">0</span>
+    </div>
+  </div>
+
+  <div class="nota">
+    <strong>Idea clave.</strong> El promedio simple siempre cae en el centro de los puntajes (30), porque ignora cuántas veces apareció cada uno. La media ponderada, en cambio, se inclina hacia el lado donde hay más frecuencias: si la mayoría de los estudiantes sacó puntajes bajos, el equilibrio se desplaza a la izquierda; si sacaron puntajes altos, se desplaza a la derecha.
+  </div>
+
+  <footer>
+    Recurso educativo abierto bajo licencia
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" rel="license">CC BY-NC-SA 4.0</a>.
+    Autor: José M. Fernández, ABE/ASE Math Master Teacher, Harry S. Truman College — City Colleges of Chicago.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var PUNTAJES = [15,20,25,30,35,40,45];
+  var freqs    = [4,6,9,10,7,5,3]; // estado inicial
+  var mostrarSimple = false;
+
+  // Geometría de la regla numérica dentro del SVG
+  var SVG_W = 800, SVG_H = 360;
+  var X0 = 70, X1 = 750;        // extremos de la regla en px
+  var Y_REGLA = 285;            // altura de la viga
+  var P_MIN = 15, P_MAX = 45;
+
+  function px(puntaje){
+    return X0 + (puntaje - P_MIN) / (P_MAX - P_MIN) * (X1 - X0);
+  }
+
+  function calc(){
+    var sumaWX = 0, sumaW = 0;
+    for (var i=0;i<PUNTAJES.length;i++){
+      sumaWX += PUNTAJES[i]*freqs[i];
+      sumaW  += freqs[i];
+    }
+    var media = sumaW>0 ? sumaWX/sumaW : 0;
+    return {sumaWX:sumaWX, sumaW:sumaW, media:media};
+  }
+
+  function redondea(n){ return Math.round(n*100)/100; }
+
+  // ---- Dibujo de la balanza ----
+  function dibuja(){
+    var c = calc();
+    var svg = document.getElementById("balanza");
+    var ns = "http://www.w3.org/2000/svg";
+    svg.innerHTML = "";
+
+    function el(tag, attrs, text){
+      var e = document.createElementNS(ns, tag);
+      for (var k in attrs){ e.setAttribute(k, attrs[k]); }
+      if (text!=null){ e.textContent = text; }
+      svg.appendChild(e);
+      return e;
+    }
+
+    // Viga (madera)
+    el("rect",{x:X0-18,y:Y_REGLA,width:(X1-X0)+36,height:14,rx:4,
+               fill:"var(--madera)",stroke:"var(--madera-borde)","stroke-width":1.5});
+
+    // Marcas y etiquetas de puntaje
+    var maxF = Math.max(1, Math.max.apply(null, freqs));
+    var pesaH = 15, pesaW = 30, hueco = 2;
+
+    for (var i=0;i<PUNTAJES.length;i++){
+      var x = px(PUNTAJES[i]);
+      // marca
+      el("line",{x1:x,y1:Y_REGLA-4,x2:x,y2:Y_REGLA+14,
+                 stroke:"var(--madera-borde)","stroke-width":1});
+      // etiqueta del puntaje
+      el("text",{x:x,y:Y_REGLA+34,"text-anchor":"middle",
+                 "font-family":"Georgia, serif","font-size":15,
+                 fill:"var(--tinta)"}, PUNTAJES[i]);
+      // pesas apiladas
+      for (var j=0;j<freqs[i];j++){
+        var py = Y_REGLA - pesaH - j*(pesaH+hueco);
+        el("rect",{x:x-pesaW/2,y:py,width:pesaW,height:pesaH,rx:2,
+                   fill:"var(--pesa)",stroke:"#5C3900","stroke-width":1,
+                   opacity:0.92});
+      }
+      // número de la frecuencia encima de la pila
+      if (freqs[i]>0){
+        var topY = Y_REGLA - freqs[i]*(pesaH+hueco) - 6;
+        el("text",{x:x,y:topY,"text-anchor":"middle",
+                   "font-family":"Courier New, monospace","font-size":13,
+                   "font-weight":"700",fill:"var(--pesa)"}, freqs[i]);
+      }
+    }
+
+    // Promedio simple (referencia fija en 30)
+    if (mostrarSimple){
+      var xs = px(30);
+      el("line",{x1:xs,y1:30,x2:xs,y2:Y_REGLA,
+                 stroke:"var(--simple)","stroke-width":2,
+                 "stroke-dasharray":"6 5"});
+      el("text",{x:xs,y:24,"text-anchor":"middle",
+                 "font-family":"Georgia, serif","font-size":13,
+                 fill:"var(--simple)"}, "Promedio simple = 30");
+    }
+
+    // Fulcro = media ponderada
+    var xm = px(Math.max(P_MIN, Math.min(P_MAX, c.media)));
+    // triángulo del fulcro
+    el("polygon",{points:(xm)+","+(Y_REGLA+14)+" "+(xm-16)+","+(Y_REGLA+58)+" "+(xm+16)+","+(Y_REGLA+58),
+                  fill:"var(--equilibrio)",stroke:"#0b544e","stroke-width":1.5});
+    // línea guía y etiqueta de la media
+    el("line",{x1:xm,y1:48,x2:xm,y2:Y_REGLA,
+               stroke:"var(--equilibrio)","stroke-width":2});
+    var cap = el("rect",{x:xm-58,y:24,width:116,height:24,rx:6,
+               fill:"var(--equilibrio)"});
+    el("text",{x:xm,y:41,"text-anchor":"middle",
+               "font-family":"Georgia, serif","font-size":14,
+               "font-weight":"700",fill:"#fff"},
+               "Media = "+redondea(c.media));
+  }
+
+  // ---- Controles de frecuencia ----
+  function construyeControles(){
+    var cont = document.getElementById("controles");
+    cont.innerHTML = "";
+    for (var i=0;i<PUNTAJES.length;i++){
+      (function(idx){
+        var div = document.createElement("div");
+        div.className = "control";
+
+        var p = document.createElement("div");
+        p.className = "puntaje";
+        p.textContent = "Puntaje " + PUNTAJES[idx];
+        div.appendChild(p);
+
+        var f = document.createElement("div");
+        f.className = "freq";
+        f.id = "freq-"+idx;
+        f.textContent = freqs[idx];
+        div.appendChild(f);
+
+        var bot = document.createElement("div");
+        bot.className = "botones";
+
+        var menos = document.createElement("button");
+        menos.className = "btn";
+        menos.type = "button";
+        menos.textContent = "−";
+        menos.setAttribute("aria-label","Quitar una frecuencia al puntaje "+PUNTAJES[idx]);
+        menos.addEventListener("click", function(){ cambia(idx,-1); });
+
+        var mas = document.createElement("button");
+        mas.className = "btn";
+        mas.type = "button";
+        mas.textContent = "+";
+        mas.setAttribute("aria-label","Agregar una frecuencia al puntaje "+PUNTAJES[idx]);
+        mas.addEventListener("click", function(){ cambia(idx,1); });
+
+        bot.appendChild(menos);
+        bot.appendChild(mas);
+        div.appendChild(bot);
+        cont.appendChild(div);
+      })(i);
+    }
+  }
+
+  function cambia(idx, delta){
+    var nuevo = freqs[idx] + delta;
+    if (nuevo < 0) nuevo = 0;
+    if (nuevo > 12) nuevo = 12; // tope para no desbordar la pila
+    freqs[idx] = nuevo;
+    document.getElementById("freq-"+idx).textContent = nuevo;
+    refresca();
+  }
+
+  // ---- Tabla y resultado ----
+  function actualizaTabla(){
+    var cuerpo = document.getElementById("tabla-cuerpo");
+    cuerpo.innerHTML = "";
+    var c = calc();
+    for (var i=0;i<PUNTAJES.length;i++){
+      var tr = document.createElement("tr");
+      var prod = PUNTAJES[i]*freqs[i];
+      tr.innerHTML = "<td>"+PUNTAJES[i]+"</td><td>"+freqs[i]+"</td><td>"+prod+"</td>";
+      cuerpo.appendChild(tr);
+    }
+    document.getElementById("total-w").textContent  = c.sumaW;
+    document.getElementById("total-wx").textContent = c.sumaWX;
+    document.getElementById("r-suma").textContent   = c.sumaWX;
+    document.getElementById("r-total").textContent  = c.sumaW;
+    document.getElementById("r-media").textContent  = c.sumaW>0 ? redondea(c.media) : "—";
+  }
+
+  function refresca(){
+    dibuja();
+    actualizaTabla();
+  }
+
+  // ---- Interruptor del promedio simple ----
+  var toggle = document.getElementById("toggleSimple");
+  function alternaSimple(){
+    mostrarSimple = !mostrarSimple;
+    toggle.setAttribute("aria-pressed", mostrarSimple ? "true":"false");
+    document.getElementById("leyenda-simple").hidden = !mostrarSimple;
+    dibuja();
+  }
+  toggle.addEventListener("click", alternaSimple);
+  toggle.addEventListener("keydown", function(e){
+    if (e.key===" "||e.key==="Enter"){ e.preventDefault(); alternaSimple(); }
+  });
+
+  // ---- Presets ----
+  function aplica(arr){
+    freqs = arr.slice();
+    for (var i=0;i<freqs.length;i++){
+      document.getElementById("freq-"+i).textContent = freqs[i];
+    }
+    refresca();
+  }
+  document.getElementById("acc-bajos").addEventListener("click", function(){ aplica([10,9,7,5,3,2,1]); });
+  document.getElementById("acc-altos").addEventListener("click", function(){ aplica([1,2,3,5,7,9,10]); });
+  document.getElementById("acc-centro").addEventListener("click", function(){ aplica([1,3,7,11,7,3,1]); });
+  document.getElementById("acc-iguales").addEventListener("click", function(){ aplica([6,6,6,6,6,6,6]); });
+
+  // ---- Inicio ----
+  construyeControles();
+  refresca();
+})();
+</script>
+</body>
+</html>
